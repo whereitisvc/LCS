@@ -104,7 +104,7 @@ string binstring(int n, int num){
     // add zeros if the size < n 
     for(int i=0; i<n; i++) str.push_back(48);
 
-	reverse(str.begin(), str.end()); 
+	std::reverse(str.begin(), str.end()); 
 	return str; 
 } 
 
@@ -136,7 +136,7 @@ void findLCS(string X, string Y, int xi, int yi, string str, set<string>& ans)
     // base case: when reach the end of a string, add the current str into ans
     if(xi == 0 || yi == 0){
         string temp(str);
-        reverse(temp.begin(), temp.end());
+        std::reverse(temp.begin(), temp.end());
 		ans.insert(temp);
 
         // insert empty string 
@@ -148,7 +148,7 @@ void findLCS(string X, string Y, int xi, int yi, string str, set<string>& ans)
     if(dp[xi][yi].visited){
         for(string s: dp[xi][yi].list){
             string temp(str);
-            reverse(temp.begin(), temp.end());
+            std::reverse(temp.begin(), temp.end());
 		    ans.insert(s + temp);
         }
         return;
