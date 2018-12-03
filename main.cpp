@@ -9,159 +9,79 @@ binstring(n,x) and binstring(n,y) and displays them.
 #include <iostream>
 #include <cmath>
 #include <set>
+#include <algorithm>
 
 using namespace std;
 
-int** dp;
+// the node for dp matrix
+class Node{
+public:
+    int val; // for determining LCS
+    bool visited; // record visited or not in the search tree
+    set<string> list; // record the set of matched string below current node in the search tree
+    Node(){
+        val = 0;
+        visited = false;
+    }
+};
 
-// find all LCS string
-set<string> findLCS(string X, string Y, int xi, int yi);
+// dp matrix for determining LCS and finding LCS strings
+Node** dp;
 
-// caculate LCS by dynamic programming
-int LCS(string X, string Y, int n);
+// handle the correctness of the inputs
+int getn(int, int);
+int getxy(char c, int low, int high);
 
-// convert string to number
+// handle the transformence between binstring and value
 int string2num(string str);
+string binstring(int n, int num);
 
-// convert number to string
-string num2string(int num, int n);
-
-// get n value
-short unsigned int getn(short int, short int);
-// get x value or y value
-long unsigned int getxy(char, short int, long unsigned int);
+// determine the number of distinct strings that are LCS and record them
+int LCS(string X, string Y, int n);
+void findLCS(string X, string Y, int xi, int yi, string str, set<string>& ans);
+int CountLCS(string X, string Y, int n, set<string>& ans);
 
 int main()
 {
-    // initialize 3 integers n, x, y
-    short unsigned int n; // [3, 20]
-    long unsigned int x, y; // [0, 2^n-1]
-
-    // declared for the range test z = 2^n - 1
-    long unsigned int z;
-
-    char again = 'n'; // control user input switch
-
-    // // get n
-    // n = getn(3, 20);
-
-    // // calculate the max value for x and y
-    // z = pow(2, n) - 1;
-    // cout << "z value is " << z << endl;
-
-    // // get x and y
-    // x = getxy('x', 0, z);
-    // y = getxy('y', 0, z);
+    
+    int n, x, y;
+    int z;
 
     //n = 14; x = 12642; y = 5735;
-    // n = 20;  x = 1048575; y = 1;//355;
-    // int shift = 8; x = x >> shift; n = n - shift;
-    // string X = num2string(x, n);
-    // string Y = num2string(y, n);
+    //n = 20;  x = 1048575; y = 355;
 
-    // // confirm inputs
-    // cout << "n is recorded as " << n << endl;
-    // cout << "x is recorded as " << x << ", " << X << endl;
-    // cout << "y is recorded as " << y << ", " << Y << endl;
-
-    // dp = new int*[n+1];
-    // for(int i=0; i<n+1; i++){
-    //     dp[i] = new int[n+1];
-    // }
-
-    // cout << "LCS = " << LCS(X, Y, n) << endl;
-
-    // set<string> s = findLCS(X, Y, n, n);
-    // for(string str: s)  
-    //     cout << str << ", " << string2num(str) << endl;
-
-    n = 5;
+    // get inputs n, x, y
+    n = getn(3, 20);
     z = pow(2, n) - 1;
+    x = getxy('x', 0, z);
+    y = getxy('y', 0, z);
 
-    dp = new int*[n+1];
-    for(int i=0; i<n+1; i++){
-        dp[i] = new int[n+1];
+    // determine LCS
+    string X = binstring(n, x);
+    string Y = binstring(n, y);
+    set<string> ans;
+    int lcs = CountLCS(X, Y, n, ans); 
+
+    // display the result
+    cout << endl;
+    cout << "n = " << n << ", " << "x = " << x << ", " << "y = " << y << endl;
+    cout << "binstring(n, x) = " << X << endl;
+    cout << "binstring(n, y) = " << Y << endl;   
+
+    cout << endl;
+    cout << "the determined number of distinct LCS's = " << lcs << endl;
+
+    cout << endl;
+    cout << "the list of those LCS's: " << endl;
+    int count = 1;
+    for(string s: ans){
+        printf("%2d. ", count++);
+        cout << "string = " << s << ", value = " << string2num(s) << endl;
     }
 
-    int threshold = 4;
-    for(x = 0; x <= z; x++){
-        for(y = 0; y <= z; y++){
-
-            // init dp[][]
-            for(int i=0; i<n+1; i++)
-                for(int j=0; j<n+1; j++)
-                    dp[i][j] = 0;
-
-
-            string X = num2string(x, n);
-            string Y = num2string(y, n);
-            int lcs = LCS(X, Y, n);
-            set<string> s = findLCS(X, Y, n, n);
-            if(s.size() >= threshold){
-                cout << "x is recorded as " << x << ", " << X << endl;
-                cout << "y is recorded as " << y << ", " << Y << endl;
-                cout << "LCS = " << lcs << endl;
-                for(string str: s)  cout << str << ", " << string2num(str) << endl;
-            }
-        }
-    }
-
-    return 0;
+    cout << endl;
 }
 
-set<string> findLCS(string X, string Y, int xi, int yi) 
-{ 
-
-	set<string> s; 
-
-    // if reach the end of string, return empty set
-	if(xi == 0 || yi == 0){ //cout << xi << ", " << yi << endl;
-		s.insert(""); 
-		return s; 
-	} 
-
-	// If the last characters of X and Y are same 
-	if(X[xi - 1] == Y[yi - 1]){ 
-		// recurse for X[0..m-2] and Y[0..n-2] in the matrix 
-		set<string> tmp = findLCS(X, Y, xi - 1, yi - 1); 
-
-		// append current character to all possible LCS of substring X[0..m-2] and Y[0..n-2]. 
-		for (string str : tmp) 
-			s.insert(str + X[xi - 1]); 
-	} 
-
-	// If the last characters of X and Y are not same 
-	else{ 
-		// If LCS can be constructed from top side of the matrix, recurse for X[0..m-2] and Y[0..n-1] 
-		if (dp[xi - 1][yi] >= dp[xi][yi - 1]) 
-			s = findLCS(X, Y, xi - 1, yi); 
-
-		// If LCS can be constructed from left side of the matrix, recurse for X[0..m-1] and Y[0..n-2] 
-		if (dp[xi][yi - 1] >= dp[xi - 1][yi]) 
-		{ 
-			set<string> tmp = findLCS(X, Y, xi, yi - 1); 
-
-			// merge two sets if L[m-1][n] == L[m][n-1] Note s will be empty if L[m-1][n] != L[m][n-1] 
-			s.insert(tmp.begin(), tmp.end()); 
-		} 
-	} 
-	return s; 
-}
-
-int LCS(string X, string Y, int n){ 
-	// Build dp[n+1][n+1] in bottom up fashion 
-	for (int i = 0; i <= n; i++) { 
-		for (int j = 0; j <= n; j++) {
-			if (i == 0 || j == 0) 
-                dp[i][j] = 0; 
-			else if (X[i - 1] == Y[j - 1]) 
-				dp[i][j] = dp[i - 1][j - 1] + 1; 
-			else
-				dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]); 
-		} 
-	} 
-	return dp[n][n]; 
-}
 
 int string2num(string str){ 
 	int num = 0; 
@@ -173,7 +93,7 @@ int string2num(string str){
 	return num; 
 }
 
-string num2string(int num, int n){ 
+string binstring(int n, int num){ 
 	string str; 
 	while (num > 0){ 
 		int digit = num % 2; 
@@ -182,15 +102,110 @@ string num2string(int num, int n){
         n--;
 	} 
     
+    // add zeros if the size < n 
     for(int i=0; i<n; i++) str.push_back(48);
 
 	reverse(str.begin(), str.end()); 
 	return str; 
 } 
 
-short unsigned int getn(short int low = 3, short int high = 20){
-    // initialize n
-    short unsigned int n; // [3, 20]
+int LCS(string X, string Y, int n){ 
+	// Build dp matrix
+	for (int i = 0; i <= n; i++) { 
+		for (int j = 0; j <= n; j++) {
+
+            // row 0 and col 0 are the initial values
+			if (i == 0 || j == 0) 
+                dp[i][j].val = 0;
+
+            // if character in X and Y are same, then increase the value by one
+            // else keep the max value 
+			else 
+            {
+                if (X[i - 1] == Y[j - 1]) 
+                    dp[i][j].val = dp[i - 1][j - 1].val + 1; 
+                else
+                    dp[i][j].val = max(dp[i - 1][j].val, dp[i][j - 1].val); 
+		    }
+        } 
+	} 
+	return dp[n][n].val; 
+}
+
+void findLCS(string X, string Y, int xi, int yi, string str, set<string>& ans) 
+{ 
+    // base case: when reach the end of a string, add the current str into ans
+    if(xi == 0 || yi == 0){
+        string temp(str);
+        reverse(temp.begin(), temp.end());
+		ans.insert(temp);
+
+        // insert empty string 
+        dp[xi][yi].list.insert("");
+		return; 
+	} 
+
+    // if current node is visited, then compose current str and the string in node list 
+    if(dp[xi][yi].visited){
+        for(string s: dp[xi][yi].list){
+            string temp(str);
+            reverse(temp.begin(), temp.end());
+		    ans.insert(s + temp);
+        }
+        return;
+    }
+
+    // record current node as visited
+    dp[xi][yi].visited = true;
+
+    // If the last characters of X and Y are same, go diagonal
+    if(X[xi - 1] == Y[yi - 1]){        
+        findLCS(X, Y, xi-1, yi-1, str+X[xi - 1], ans);
+        for(string s: dp[xi-1][yi-1].list){
+            dp[xi][yi].list.insert(s + X[xi - 1]);
+        }
+        
+    }
+
+    // If the last characters of X and Y are not same, go to the direction with larger value
+    // If the values are same, go both
+    else{
+
+        if( dp[xi - 1][yi].val >= dp[xi][yi - 1].val ){
+            findLCS(X, Y, xi-1, yi, str, ans);
+            for(string s: dp[xi-1][yi].list){
+                dp[xi][yi].list.insert(s);
+            }
+        }
+        if( dp[xi][yi - 1].val >= dp[xi - 1][yi].val ){
+            findLCS(X, Y, xi, yi-1, str, ans);
+            for(string s: dp[xi][yi-1].list){
+                dp[xi][yi].list.insert(s);
+            }
+        }
+
+    }
+}
+
+int CountLCS(string X, string Y, int n, set<string>& ans){
+
+    // initialize dp matrix
+    dp = new Node*[n+1];
+    for(int i=0; i<n+1; i++){
+        dp[i] = new Node[n+1];
+    }
+
+    // caculate LCS by building up dp matrix
+    int lcs = LCS(X, Y, n);
+
+    // find all distinct LCS strings
+    findLCS(X, Y, n, n, "", ans);
+
+    return lcs;
+}
+
+int getn(int low = 3, int high = 20){
+    int n; // [3, 20]
     char again = 'n'; // control user input switch
     // get n
     while (again != 'y' || again != 'Y')
@@ -233,9 +248,9 @@ short unsigned int getn(short int low = 3, short int high = 20){
     return n;
 }
 
-long unsigned int getxy(char c, short int low, long unsigned int high){
+int getxy(char c, int low, int high){
     // initialize x or y
-    long unsigned int y;
+    int y;
 
     char again = 'n'; // control user input switch
     while (again != 'y' || again != 'Y')
@@ -277,3 +292,5 @@ long unsigned int getxy(char c, short int low, long unsigned int high){
     }
     return y;
 }
+
+
