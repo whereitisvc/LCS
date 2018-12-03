@@ -10,6 +10,7 @@ binstring(n,x) and binstring(n,y) and displays them.
 #include <cmath>
 #include <set>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -50,37 +51,73 @@ int main()
     //n = 14; x = 12642; y = 5735;
     //n = 20;  x = 1048575; y = 355;
 
-    //get inputs n, x, y
+    // get inputs n, x, y
+    // n = getn(3, 20);
+    // z = pow(2, n) - 1;
+    // x = getxy('x', 0, z);
+    // y = getxy('y', 0, z);
+
     n = getn(3, 20);
     z = pow(2, n) - 1;
-    x = getxy('x', 0, z);
-    y = getxy('y', 0, z);
 
-    // determine LCS
-    string X = binstring(n, x);
-    string Y = binstring(n, y);
-    set<string> ans;
-    int lcs = CountLCS(X, Y, n, ans); 
+    int maxx = -1;
+    int xx = -1;
+    int yy = -1;
+    map<pair<string, string>, int> table;
+    for(x = 0; x<=z; x++){
+        //cout << x << ", ";
+        for(y = x+1; y<=z; y++){
+            string X = binstring(n, x);
+            string Y = binstring(n, y);
+            set<string> ans;
+            int lcs = CountLCS(X, Y, n, ans);
 
-    // display the result
-    cout << endl;
-    cout << "n = " << n << ", " << "x = " << x << ", " << "y = " << y << endl;
-    cout << "binstring(n, x) = " << X << endl;
-    cout << "binstring(n, y) = " << Y << endl;   
+            pair<string, string> p (X, Y);
+            table.insert( {p, ans.size()});
 
-    cout << endl;
-    cout << "the length of LCS = " << lcs << endl;
-    cout << "the number of distinct LCS = " << ans.size() << endl;
-
-    cout << endl;
-    cout << "the list of those distinct LCS: " << endl;
-    int count = 1;
-    for(string s: ans){
-        printf("%2d. ", count++);
-        cout << "string = " << s << ", value = " << string2num(s) << endl;
+            if((int)ans.size() > maxx){
+                maxx = ans.size();
+                xx = x;
+                yy = y;
+            }
+        }
     }
 
-    cout << endl;
+    cout << endl <<  "LCS = " << maxx << endl;
+
+    for(auto it: table){
+        if(it.second == maxx){
+            cout << "X = " << it.first.first <<   endl;
+            cout << "Y = " << it.first.second <<  endl << endl;
+        }
+    }
+
+    //cout << endl << endl << xx << ", " << yy << endl;
+
+    // // determine LCS
+    // string X = binstring(n, x);
+    // string Y = binstring(n, y);
+    // set<string> ans;
+    // int lcs = CountLCS(X, Y, n, ans); 
+
+    // // display the result
+    // cout << endl;
+    // cout << "n = " << n << ", " << "x = " << x << ", " << "y = " << y << endl;
+    // cout << "binstring(n, x) = " << X << endl;
+    // cout << "binstring(n, y) = " << Y << endl;   
+
+    // cout << endl;
+    // cout << "the determined number of distinct LCS's = " << lcs << endl;
+
+    // cout << endl;
+    // cout << "the list of those LCS's: " << endl;
+    // int count = 1;
+    // for(string s: ans){
+    //     printf("%2d. ", count++);
+    //     cout << "string = " << s << ", value = " << string2num(s) << endl;
+    // }
+
+    // cout << endl;
 }
 
 
